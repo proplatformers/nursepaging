@@ -1,0 +1,10 @@
+package com.nursepaging.pna.utils;
+
+public interface Alarm {
+
+	public String getMessageID() ;
+	public String getStation() ;
+	public void parse(StringBuffer sb) ;
+	public String getMessageText() ;
+	public int getMessageAlarmCodePriority() ;
+}

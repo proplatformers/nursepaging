@@ -1,0 +1,71 @@
+package com.nursepaging.pna.apr;
+
+import java.util.StringTokenizer ;
+import com.nursepaging.pna.PNAMessage;
+/**
+ * 
+ * @author  cocito
+ */
+public class PNAMessageAPR extends PNAMessage{
+    
+    private final String TIME = "Time: ";
+    private final String DATE = "Date: ";
+    private final String ALARMCODE = "Code: ";
+    private final String MESSAGE = "Msg: " ;
+    private final String DEV = "BED: " ;
+    private String time ;
+    private String date ;
+    private String logStr = "" ;
+    
+    public PNAMessageAPR(StringBuffer sb, int id) {
+        this.sb = sb ;
+        this.id = id ;
+        Init();
+        parse(sb) ;
+    }
+    
+    public PNAMessageAPR(String extensionNumber, String message){
+        super() ;
+//        this.dev = extensionNumber ;
+//        this.message = message ;
+//        Init() ;
+    }
+    public PNAMessageAPR(){
+    }
+    
+    public void parse(StringBuffer sb){
+        logStr += "Parsing..." ;
+        String theStr = new String(sb);
+        String returnStr = Parse_String(theStr,logStr);
+        logStr = returnStr;
+        log.info(logStr) ;
+    }
+
+    public void Init(){
+
+    }
+    
+    private String Parse_String(String str, String logstr){
+        System.out.println(str);
+        StringTokenizer st = new StringTokenizer(str,"/");
+        station = st.nextToken();
+        logstr += "CAPCODES: " + station ;
+        alarmCodePriority =  9;//st.nextToken() ;
+        logstr += "PRIORITY: " + alarmCodePriority ;
+        messageText="";
+        while( st.hasMoreTokens() ){
+            messageText += st.nextToken() ;
+        }
+        logstr += "MESSAGE:" + messageText ;
+        return logstr;
+    }
+	
+    private void Reset(){
+        time = null ;
+        date = null ;
+        alarmCodePriority = 9 ;
+        messageText = null ;
+        station = null ;
+    }
+    
+}

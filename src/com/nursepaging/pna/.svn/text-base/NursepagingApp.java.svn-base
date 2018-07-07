@@ -1,0 +1,24 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package com.nursepaging.pna;
+
+import java.util.Properties;
+
+/**
+ *
+ * @author cm
+ */
+public interface NursepagingApp extends Runnable{
+    public String getVersion() ;
+    public String getImplementation() ;
+    public String getCoreVersion() ;
+    public Properties getCoreProperties() ;
+    public void createPNAMessage(StringBuffer recd_string) ;
+    public boolean checkReceived(StringBuffer sb) ;
+    public void init() ;
+    public void addNewTestMessage() ;
+    public void TDSDataReceived(String dev, String code, String data) ;
+}

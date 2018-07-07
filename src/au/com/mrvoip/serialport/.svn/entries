@@ -1,0 +1,71 @@
+8
+
+dir
+3
+http://192.168.0.251/nursepaging/Nursepaging/src/au/com/mrvoip/serialport
+http://192.168.0.251/nursepaging
+
+
+
+2009-08-19T02:17:15.832704Z
+2
+
+
+
+svn:special svn:externals svn:needs-lock
+
+SerialPortOwner.java
+file
+
+
+
+
+2009-08-18T16:20:29.000000Z
+10e4c32f9c6c0419e040218c0391c2ea
+2009-08-19T02:17:15.832704Z
+2
+
+TTYSx_Receiver.java
+file
+
+
+
+
+2009-08-18T16:20:30.000000Z
+5fb39ee476bd12a005e708c7d36b8060
+2009-08-19T02:17:15.832704Z
+2
+
+SerialConfigurator.java
+file
+
+
+
+
+2009-08-18T16:20:29.000000Z
+05c282c6f9c17f5e03cbb68a23c18267
+2009-08-19T02:17:15.832704Z
+2
+
+SerialParameters.java
+file
+
+
+
+
+2009-08-18T16:20:29.000000Z
+024717d9bfd1e7782dd5b5d1d154b9b1
+2009-08-19T02:17:15.832704Z
+2
+
+TTYSx.java
+file
+
+
+
+
+2009-08-18T16:20:29.000000Z
+6c47dc48b5009120b6e9291d9bbf01ae
+2009-08-19T02:17:15.832704Z
+2
+

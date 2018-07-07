@@ -1,0 +1,386 @@
+/*
+This file is part of Nursepaging.
+
+    Nursepaging is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Nursepaging is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with Nursepaging.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
+
+package com.nursepaging.pna.apr;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.opencsta.servicedescription.common.AgentEvent;
+import org.opencsta.servicedescription.common.CallEvent;
+
+import com.nursepaging.pna.CorePNA;
+import com.nursepaging.pna.ExtensionDisplayManager;
+import com.nursepaging.pna.NursepagingApp;
+import com.nursepaging.pna.PNAMessage;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Properties;
+import java.util.Random;
+
+/**
+ *
+ * @author  Chris Mylonas - NURSEPAGING.COM
+ */
+//public class APR extends CorePNA{
+public class APR implements NursepagingApp{
+    private CorePNA coreParent ;
+    private final String VERSION = "3.0-rc2" ;
+    private final String IMPLEMENTATION = "APR" ;
+    private List extensionsRegistered ;
+    private int FIVE = 5 ;
+    private int SIX = 6 ;
+    private Random generator ;
+    private int runCycleCounter = 0 ;
+
+    public APR(CorePNA core){
+        this.coreParent = core ;
+    }
+
+    public APR(){
+        super();
+    }
+    
+//    public APR(Properties props){
+//        super(props,true) ;
+//    }
+
+
+    public APR(Properties props){
+
+    }
+
+//    public static void main (String[] args){
+////        setFileEncoding() ;
+//        APR pna = new APR() ;
+//        pna.run() ;
+//    }
+//
+//    private static void setFileEncoding(){
+//        System.out.println(System.getProperty("file.encoding")) ;
+//        System.setProperty("file.encoding", "ISO-8859-1") ;
+//        System.out.println(System.getProperty("file.encoding")) ;
+//    }
+    
+    @SuppressWarnings("static-access")
+    public void init(){
+        extensionsRegistered = Collections.synchronizedList( new LinkedList() ) ;
+        //LOAD EXTENSION LIST
+        RegisterExtensions() ;
+        generator = new Random() ;
+//        String aud = theProps.getProperty("AUDIBLE") ;
+//        if( aud.equalsIgnoreCase("TRUE") ){
+//            setAudible(true) ;
+//        }
+//        else{
+//            setAudible(false) ;
+//        }
+        coreParent.getLog().info(this.getClass().getName() + "APR Implementation Initialising");
+    }
+    
+    /**
+     * This method just sends a short message that displays for several seconds before
+     * being cleared to the handsets listed in /home/cocito/1stLevel.esc  -
+     */
+    @SuppressWarnings("static-access")
+    protected void RegisterExtensions(){
+        String ext ;
+//        int i = 0 ;
+        try{
+        	//possibly change this to read from a properties configuration file which can be
+        	//written from a JSP.  Continuing on from that, be able to configure the whole
+        	//PNA & CSTA systems.
+        	String filename = coreParent.getTheProps().getProperty("EXT2NOTIFY") ;
+            BufferedReader fin = new BufferedReader(new FileReader(new File(filename))) ;
+            while( (ext = fin.readLine()) != null){
+                extensionsRegistered.add(ext) ;
+                coreParent.getLog().info(this.getClass().getName() + " -Adding " + ext + " to registered extensions list") ;
+                coreParent.getCsta().SetDisplay(ext,"",false) ;
+                try {
+                    synchronized(this) {
+                        wait( 500 ) ;
+                    }
+                }catch(InterruptedException e){
+                    coreParent.getLog().warn(this.getClass().getName() + " Interrupted Exception during register extensions") ;
+                }
+            }
+        //    general_log.log(Level.INFO,"There are " + extensionsRegistered.size() + " extensions registerd") ;
+            
+        }catch(FileNotFoundException e){
+            //set display, no 1st level escalation file
+        }catch(IOException e2){
+        }catch(NullPointerException e3){
+		e3.printStackTrace();
+	}
+    }
+    
+    @SuppressWarnings("static-access")
+    public boolean checkReceived(StringBuffer curInStr){
+        if( curInStr.charAt( curInStr.length() - 1) != 0x0d)//<CR>
+            return false ;
+        else{
+            coreParent.addRXList( curInStr ) ;
+            coreParent.getLog().info(this.getClass().getName() + " -RECEIVED NURSECALL STRING - Added to Messages Queue");
+            return true;
+        }
+    }
+    
+    public void createPNAMessage(StringBuffer recd_string){
+        int id = coreParent.NewMsgID() ;
+        PNAMessageAPR sm = new PNAMessageAPR(recd_string,id) ;
+        coreParent.addPNASendList(sm) ;
+    }
+    
+    @SuppressWarnings("static-access")
+    public void run(){
+        if( runCycleCounter == 0 ){
+            coreParent.getLog().info(this.getClass().getName() + " - run cycle");
+            coreParent.getLog().info(this.getClass().getName() + " - clear out aged messages and resend silent updates to displays");
+            synchronized( coreParent.getCurrentlyDisplaying() ){
+                Hashtable htcd = coreParent.getCurrentlyDisplaying() ;
+                Enumeration en = htcd.keys() ;
+                while( en.hasMoreElements() ){
+                    String key = (String) en.nextElement() ;
+                    coreParent.getLog().info(this.getClass().getName() + " key is " + key) ;
+                    ExtensionDisplayManager tmp_edm = (ExtensionDisplayManager) htcd.remove(key) ;
+                    tmp_edm.ageMessages();
+                    htcd.put(key, tmp_edm) ;
+
+                }
+            }
+            runCycleCounter = 1 ;
+
+        }
+//        logRunMessage() ;
+//        while( isRunFlag() ){
+//            try {
+//                synchronized(this) {
+//                    wait(2000) ;
+//                }
+//            }catch(InterruptedException e){
+//                log.warn("Interrupted Exception") ;
+//            }
+            synchronized( coreParent.getPnaSendList() ){
+                coreParent.checkRXList() ;
+                if( coreParent.getPnaSendList().size() > 0 ){
+                    //new source message awaiting broadcast to handsets.
+                    while( coreParent.getPnaSendList().size() > 0 ){
+                        PNAMessageAPR sm = (PNAMessageAPR)coreParent.getPnaSendList().remove(0) ;
+                        String display = sm.getMessageText() ;
+                        int code = sm.getMessageAlarmCodePriority();
+                        String station = sm.getStation() ;
+                        synchronized(coreParent.getCurrentlyDisplaying() ){
+                            if( code == FIVE || code == SIX ){//apr sends a code - just accept it
+                                for( int i = 0 ; i < extensionsRegistered.size() ; i++){
+                                    try {
+                                        synchronized(this) {
+                                            wait(200) ;
+                                        }
+                                    }catch(InterruptedException e){
+                                        coreParent.getLog().warn(this.getClass().getName() + "Interrupted Exception") ;
+                                    }
+                                    String ext = (String)extensionsRegistered.get(i) ;
+                                    if( coreParent.getCurrentlyDisplaying().containsKey(ext) ){
+                                        //new message received and need to add to list of messages for that ext
+                                        ExtensionDisplayManager edm = (ExtensionDisplayManager)coreParent.getCurrentlyDisplaying().remove(ext) ;
+                                        if( edm.removeDisplayMessage(station) ){
+                                            PNAMessage tmp = edm.getCurrentDisplayMessage();
+                                            if( tmp != null ){
+                                                coreParent.getCsta().SetDisplay(ext,("<"+tmp.getMessageText()),coreParent.isAudible() ) ;//'<' indicates there is a previous message
+                                                coreParent.getCurrentlyDisplaying().put(ext, edm) ;
+                                            } else{
+                                                coreParent.getCsta().SetDisplay(ext,"",false) ;
+                                            }
+                                        } else{
+                                            coreParent.getLog().warn(this.getClass().getName() + "Cannot Remove SourceMessage to ExtensionDisplayManager List") ;
+                                        }
+                                    }
+                                    
+                                }
+                            } else{
+                                //String msg_id = sm.GetMsgID() ;
+                                for( int i = 0 ; i < extensionsRegistered.size() ; i++){
+                                    try {
+                                        synchronized(this) {
+                                            wait(200) ;
+                                        }
+                                    }catch(InterruptedException e){
+                                        coreParent.getLog().warn(this.getClass().getName() + "Interrupted Exception") ;
+                                    }
+                                    String ext = (String)extensionsRegistered.get(i) ;
+                                    if( coreParent.getCurrentlyDisplaying().containsKey(ext) ){
+                                        //new message received and need to add to list of messages for that ext
+                                        ExtensionDisplayManager edm = (ExtensionDisplayManager)coreParent.getCurrentlyDisplaying().remove(ext) ;
+                                        if( edm.addDisplayMessage(sm) ){
+                                            coreParent.getCsta().SetDisplay(ext,("<"+display),coreParent.isAudible() ) ;//'<' indicates there is a previous message
+                                        } else{
+                                            coreParent.getLog().warn(this.getClass().getName() + "Cannot Add SourceMessage to ExtensionDisplayManager List") ;
+                                        }
+                                        coreParent.getCurrentlyDisplaying().put(ext, edm) ;
+                                    } else{ //totally new handset brought into system
+                                        coreParent.getCsta().SetDisplay(ext,display,coreParent.isAudible() ) ; //set the display
+                                        ExtensionDisplayManager edm = new ExtensionDisplayManager(ext,sm) ;
+                                        coreParent.getCurrentlyDisplaying().put(ext,edm) ;//extension is currentlyDisplaying
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        runCycleCounter-- ;
+//        }
+    }
+    @SuppressWarnings("static-access")
+    public void TDSDataReceived(String dev,String code,String data){
+      coreParent.LogTDSAction(dev,code,data) ;
+      if( code.equals(coreParent.getREMOVE()) ){//REMOVE DISPLAYED MESSAGE
+          synchronized(coreParent.getCurrentlyDisplaying()){
+              if( coreParent.getCurrentlyDisplaying().containsKey(dev) ){//we have an item to remove
+                  ExtensionDisplayManager edm = (ExtensionDisplayManager)coreParent.getCurrentlyDisplaying().remove(dev) ;
+                  if( edm.removeDisplayMessage() ){//remove SM with msg_id == data
+                      if( edm.hasMoreMessages() ){
+                          //GET NEXT MSG AND DISPLAY
+                    	  PNAMessage sm = edm.getCurrentDisplayMessage() ;
+                          String display = sm.getMessageText() ;
+                          if( edm.currentDisplayMessagePosition() == 0 ){//0 indicates only one message, no <> needed
+                              coreParent.getCsta().SetDisplay(dev,display, coreParent.isAudible() ) ;
+                          }
+                          else if( edm.currentDisplayMessagePosition() == 1 ){//indicates has previous only, needs <
+                              coreParent.getCsta().SetDisplay(dev,("<"+display),coreParent.isAudible() ) ;
+                          }
+                          else if( edm.currentDisplayMessagePosition() == 2 ){//indicates has next only, needs >
+                              coreParent.getCsta().SetDisplay(dev,(">"+display),coreParent.isAudible() ) ;
+                          }
+                          else if( edm.currentDisplayMessagePosition() == 3){//indicates both next and previous, <> needed
+                              coreParent.getCsta().SetDisplay(dev,"<>"+display,coreParent.isAudible() ) ;
+                          }
+                          //PUT BACK INTO currentlyDisplaying
+                          coreParent.getCurrentlyDisplaying().put(dev,edm) ;
+                      }
+                      else{//NO MORE MESSAGES FOR THIS EXTENSION, CLEAR DISPLAY
+                          coreParent.getCsta().SetDisplay(dev,"",false) ;
+                      }
+                  }
+                  else{//WRONG MSG_ID GIVEN DURING NURSE INPUT FOR TDS
+                      //MUST PUT BACK INTO currentlyDisplaying COS STILL IS
+                      coreParent.getCurrentlyDisplaying().put(dev,edm) ;
+                  }
+              }
+              else{//MISTAKEN TDS TRANSMISSION
+                  //DO NOTHING
+                  coreParent.getLog().warn(this.getClass().getName() + "Mistaken TDS transmission - nothing to do") ;
+              }
+          }
+      }
+      else if( code.equals(coreParent.getPREVIOUS()) ){//SCROLL PREVIOUS TO DISPLAYED MESSAGE
+          synchronized(coreParent.getCurrentlyDisplaying()){
+              if( coreParent.getCurrentlyDisplaying().containsKey(dev) ){
+                  ExtensionDisplayManager edm = (ExtensionDisplayManager)coreParent.getCurrentlyDisplaying().remove(dev) ;
+                  if( edm.currentDisplayMessagePosition() == 0 ){//0 indicates only one message, nothing to do
+                                                          //but put back into hashtable currentlyDisplaying
+                      coreParent.getCurrentlyDisplaying().put(dev,edm) ;
+                      return ;
+                  }
+                  
+                  
+                  edm.setCurrentDisplayMessage(coreParent.getPREVIOUS() ) ;
+                  PNAMessage tmp = edm.getCurrentDisplayMessage() ;
+                  String display = tmp.getMessageText() ;
+                  if( edm.currentDisplayMessagePosition() == 2 ){//next only
+                      coreParent.getCsta().SetDisplay(dev,(">"+display),coreParent.isAudible() ) ;
+                  }
+                  else if( edm.currentDisplayMessagePosition() == 3 ){//both next and previous
+                      coreParent.getCsta().SetDisplay(dev,("<>"+display),coreParent.isAudible() ) ;
+                  }
+                  coreParent.getCurrentlyDisplaying().put(dev,edm) ;
+              }
+              else
+                  ;
+          }
+      }
+      else if( code.equals(coreParent.getNEXT() ) ){//SCROLL NEXT TO DISPLAYED MESSAGE
+          synchronized(coreParent.getCurrentlyDisplaying()){
+              if( coreParent.getCurrentlyDisplaying().containsKey(dev) ){
+                  ExtensionDisplayManager edm = (ExtensionDisplayManager)coreParent.getCurrentlyDisplaying().remove(dev) ;
+                  if( edm.currentDisplayMessagePosition() == 0 ){//0 indicates only one message, no scrolling
+                                                          //except put back into hastable currentlyDisplaying
+                      coreParent.getCurrentlyDisplaying().put(dev,edm) ;
+                      return ;
+                  }
+                  
+                  
+                  edm.setCurrentDisplayMessage(coreParent.getNEXT() ) ;
+                  PNAMessage tmp = edm.getCurrentDisplayMessage() ;
+                  String display = tmp.getMessageText() ;
+                  if( edm.currentDisplayMessagePosition() == 1 ){//previous only
+                      coreParent.getCsta().SetDisplay(dev,("<"+display),coreParent.isAudible() ) ;
+                  }
+                  else if( edm.currentDisplayMessagePosition() == 3 ){//both next and previous
+                      coreParent.getCsta().SetDisplay(dev,("<>"+display),coreParent.isAudible() ) ;
+                  }
+                  coreParent.getCurrentlyDisplaying().put(dev,edm) ;
+              }
+              else
+                  ;
+          }
+      }
+      else if( code.equals(coreParent.getCLEAR() ) ){//REMOVE DISPLAYED MESSAGE
+          synchronized(coreParent.getCurrentlyDisplaying()){
+              if( coreParent.getCurrentlyDisplaying().containsKey(dev) ){//we have an item to remove
+                  ExtensionDisplayManager edm = (ExtensionDisplayManager)coreParent.getCurrentlyDisplaying().remove(dev) ;
+                  coreParent.getCsta().SetDisplay(dev,"",false) ;
+              }
+              else{//MISTAKEN TDS TRANSMISSION
+                  //DO NOTHING
+                  coreParent.getLog().warn(this.getClass().getName() + "Mistaken TDS transmission - nothing to do") ;
+              }
+          }
+      }
+  }
+
+    public void CSTACallEventReceived(CallEvent event){}
+    public void CSTAAgentEventReceived(AgentEvent event){}
+    public void addNewTestMessage(){
+        String testmsg = "99/D/ALARM CALL: Test" + Integer.toString(generator.nextInt(1000)) ;
+        coreParent.addRXList( new StringBuffer(testmsg) ) ;
+    }
+    
+    public String getVersion(){
+        return VERSION ;
+    }
+    
+    public String getImplementation(){
+        return IMPLEMENTATION ;
+    }
+
+    public String getCoreVersion() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public Properties getCoreProperties() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+}

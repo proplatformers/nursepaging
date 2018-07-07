@@ -1,0 +1,17 @@
+package com.nursepaging.pna ;
+
+/**
+ *
+ * @author  root
+ */
+public interface TAP_Constants {
+	char pnaSTX	=	'\u0002' ;
+	char pnaETX	=	'\u0003' ;
+	char pnaEOT	=	'\u0004' ;
+	char pnaACK	=	'\u0006' ;
+	char pnaLF         =       0x0a ;
+        char pnaCR		=	0x0d ;
+	char pnaNAK        =	'\u0015' ;
+	char pnaESC	=	'\u001b' ;
+	char pnaRS         =	'\u001e' ;
+}

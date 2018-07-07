@@ -1,0 +1,216 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package com.nursepaging.pna.basepage;
+
+import java.util.List ;
+import java.util.LinkedList ;
+import java.util.Collections ;
+//import java.util.ListIterator ;
+
+/**
+ *
+ * @author  root
+ */
+public class ExtensionDisplayManagerBP {
+
+    private PNAMessageBP currentMessage ;//the SourceMessage displayed
+    private List allMessages ;//all SourceMessages for this extension
+    private String device ;//the extension
+    //private ListIterator l_itr ;//always on the current message
+    private int index ;
+    private static final String PREVIOUS = "1" ;
+    private static final String NEXT = "3" ;
+    private static final String REMOVED = "REMOVED" ;
+    private static final String ADDED = "ADDED" ;
+
+    /** Creates a new instance of ExtensionDisplayManagerBP */
+    public ExtensionDisplayManagerBP(String ext, PNAMessageBP newMsg) {
+        allMessages = Collections.synchronizedList( new LinkedList() ) ;
+        this.device = ext ;
+        this.currentMessage = newMsg ;
+        index = -1 ;
+        if( AddMessage(currentMessage) ){
+            ;
+        }
+    }
+
+    public boolean RemoveSM(String msg_id){
+        //GO THROUGH LIST OF SOURCEMESSAGES AND FIND THE CORRECT msg_id
+        //FIRST, CHECK currentMessage
+//        if( msg_id.equals( currentMessage.GetMsgID()) ){
+//            System.out.println("\n\n\tREMOVING MESSAGE") ;
+//            currentMessage = null ;
+//           return true ;
+//        }
+
+        //IF IT WAS currentMessage, THEN IT MUST BE REMOVED FROM THE LIST, AND
+        //IF IT WASN'T CURRENT MESSAGE IT HAS TO BE REMOVED AS WELL
+        //GO THRU LIST HERE
+        //System.out.println("\n\tThis mes_id to remove is: " + msg_id) ;
+        TestTheList() ;
+        synchronized(allMessages){
+            //System.out.println("Prior to removal, allMessages.size() is: " + Integer.toString(allMessages.size()) ) ;
+            for( int i = 0 ; i < allMessages.size() ; i++ ){
+                System.out.println("\n\t\tGOING THRU allMessages..." + Integer.toString(i) + "th time") ;
+                PNAMessageBP sm = (PNAMessageBP)allMessages.get(i) ;
+                if( currentMessage == sm ){
+                    allMessages.remove(i) ;
+                    SetCurrentMessage(REMOVED) ;
+                    if(index >= 0)
+                        TestTheList() ;
+                    return true ;
+                }
+            }
+//                System.out.println("Trying to match up this msg_id is: " + sm.GetMsgID() ) ;
+//                if( sm.GetMsgID().equals(msg_id) ){
+//                   System.out.println("\n\t\tREMOVING A MESSAGE\n\tSIZE NOW: " + Integer.toString(allMessages.size()) ) ;
+//                    allMessages.remove(i) ;
+//                    return true ;
+//                }
+//                else{
+//                    continue ;
+//                }
+        }
+        TestTheList() ;
+        return false ;
+    }
+
+    public int CurrentMessagePosition(){
+        int value = 0 ;
+        synchronized(allMessages){
+//            if( l_itr.hasPrevious() )
+//                value += 1 ;//having next adds 1
+//            if( l_itr.hasNext() )
+//                value += 2 ;//having previous adds 2
+            int size = allMessages.size() ;
+            if( index > 0 )
+                value += 1 ;//has previous
+            if( index < (size-1) )//has next
+                value += 2 ;
+        }
+        return value ;
+    }
+
+    public PNAMessageBP GetCurrentMessage(){
+        return currentMessage ;
+    }
+
+    public void SetCurrentMessage(String val){//NEXT = "3", PREVIOUS = "1", "ANY" is for non-scrolled change
+        //GETS NEXT MESSAGE TO DISPLAY AND THIS MESSAGE IS SET TO currentMessage
+        TestTheList() ;
+        synchronized(allMessages){
+            //if( currentMessage == null )
+            //    System.out.println("\n\t\tcurrentMessage == null, GETTING MOST-RECENT MESSAGE") ;
+            if( val.equals(REMOVED) ){
+                int size = allMessages.size() ;
+                if( index == size )
+                    index-- ;
+                else if( (index+1) < size )
+                    ;//index stays the same because the newer msg is now in the old messages spot.
+//                if( index < (size-2) )//if index is not the last message, get next
+//                    //NB: minus 2! 1 for index position to size() remedy, and another 1 cos already removed.
+//                     index++ ;
+//                else if( index > 0 )//if index is the last message, get previous
+//                     index-- ;
+            }
+            else if( val.equals(PREVIOUS) && HasPrevious() ){
+                index-- ;
+                //currentMessage = (SourceMessageBASEPage)allMessages.get(index) ;
+            }
+            else if( val.equals(NEXT) && HasNext() ){
+                index++ ;
+                //currentMessage = (SourceMessageBASEPage)allMessages.get(index) ;
+            }
+            else if( val.equals(ADDED) ){
+                index = allMessages.size() - 1 ;
+                //currentMessage = (SourceMessageBASEPage)allMessages.get(index) ;
+            }
+//            if( l_itr.hasNext() ){
+//                currentMessage = (SourceMessageBASEPage)l_itr.next() ;
+//            }
+//            else if( l_itr.hasPrevious() ){
+//                currentMessage = (SourceMessageBASEPage)l_itr.previous() ;
+ //           }
+            //currentMessage = (SourceMessageBASEPage)allMessages.get( allMessages.size()-1 ) ;//getLast() not supported
+            if( index >= 0 )
+                currentMessage = (PNAMessageBP)allMessages.get(index) ;
+            else
+                currentMessage = null ;
+        }
+        TestTheList() ;
+    }
+
+    public boolean AddMessage(PNAMessageBP sm){
+        System.out.println("\n\n\tADDING MESSAGE") ;
+        boolean val ;
+        synchronized(allMessages){
+            val = allMessages.add(sm) ;
+            SetCurrentMessage(ADDED) ;
+//            if( allMessages.size() != 1 )
+//                l_itr.next() ;
+        }
+//        synchronized(allMessages){
+//            if( allMessages.size() != 1 )
+//                l_itr.next() ;
+//        }
+        return val ;
+    }
+
+    public boolean HasMoreMessages(){
+        //RETURN TRUE IF THERE ARE MORE SOURCEMESSAGES IN THE LIST OR FALSE IF EMPTY
+        synchronized(allMessages){
+            if( allMessages.size() > 0 ){
+                System.out.println("\n\n\tHAS " + Integer.toString(allMessages.size()) + " MESSAGES LEFT") ;
+                return true ;
+            }
+            else
+                return false ;
+        }
+    }
+
+    public void TestTheList(){
+            //NEED TO SHOW:
+            //a) HOW MANY MESSAGES, THE CONTENTS, AND WHERE THE INDEX IS
+            synchronized(allMessages){
+                int number = allMessages.size() ;
+                int currentIndex = index ;
+                PNAMessageBP[] messages = new PNAMessageBP[number] ;
+
+                //PUT LIST INTO AN ARRAY
+                for( int i = 0 ; i < number ; i++)
+                    messages[i] = (PNAMessageBP)allMessages.get(i) ;
+
+                String output = "List Contains" + Integer.toString(number) + " items: " ;
+                //NOW  DISPLAY CONTENTS
+                for(int i = 0 ; i < number ; i++){
+                    if( currentIndex == i )
+                        output += "->" ;
+                    output += Integer.toString(i) + "." + messages[i].GetMessage() + "\t" ;
+                    if( currentIndex == i )
+                        output += "<-" ;
+                }
+
+                System.out.println(output) ;
+                System.out.println("Current Index is at: " + Integer.toString(currentIndex) ) ;
+            }
+
+        }
+
+        private synchronized boolean HasPrevious(){
+            if( index > 0 )//THEN THERE IS A PREVIOUS
+                return true ;
+            else
+                return false ;
+        }
+
+        private synchronized boolean HasNext(){
+            int size = allMessages.size() ;
+            if( index < (size-1) )//THEN THERE IS A NEXT_ hehe
+                return true ;
+            else
+                return false ;
+        }
+}

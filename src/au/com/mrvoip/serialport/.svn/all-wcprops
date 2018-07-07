@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/nursepaging/!svn/ver/2/Nursepaging/src/au/com/mrvoip/serialport
+END
+SerialPortOwner.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/nursepaging/!svn/ver/2/Nursepaging/src/au/com/mrvoip/serialport/SerialPortOwner.java
+END
+TTYSx_Receiver.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/nursepaging/!svn/ver/2/Nursepaging/src/au/com/mrvoip/serialport/TTYSx_Receiver.java
+END
+SerialConfigurator.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/nursepaging/!svn/ver/2/Nursepaging/src/au/com/mrvoip/serialport/SerialConfigurator.java
+END
+SerialParameters.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/nursepaging/!svn/ver/2/Nursepaging/src/au/com/mrvoip/serialport/SerialParameters.java
+END
+TTYSx.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/nursepaging/!svn/ver/2/Nursepaging/src/au/com/mrvoip/serialport/TTYSx.java
+END

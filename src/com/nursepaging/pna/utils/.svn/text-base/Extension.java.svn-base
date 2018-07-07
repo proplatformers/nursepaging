@@ -1,0 +1,36 @@
+package com.nursepaging.pna.utils;
+
+public class Extension {
+	private String extensionNumber ;
+	private String extensionName ;
+	
+	public Extension(){
+		
+	}
+	
+	public Extension(String _extensionNumber){
+		this.extensionNumber = _extensionNumber ;
+	}
+	
+	public Extension(String _extensionNumber, String _extensionName){
+		this.extensionName = _extensionName ;
+		this.extensionNumber = _extensionNumber ;
+	}
+
+	public String getExtensionNumber() {
+		return extensionNumber;
+	}
+
+	public void setExtensionNumber(String extensionNumber) {
+		this.extensionNumber = extensionNumber;
+	}
+
+	public String getExtensionName() {
+		return extensionName;
+	}
+
+	public void setExtensionName(String extensionName) {
+		this.extensionName = extensionName;
+	}
+	
+}

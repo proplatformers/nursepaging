@@ -1,0 +1,18 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package com.nursepaging.pna.basepage;
+
+public interface TAP_Constants {
+        char BP_STX     =       '\u0002' ;
+        char BP_ETX     =       '\u0003' ;
+        char BP_EOT     =       '\u0004' ;
+        char BP_ACK     =       '\u0006' ;
+        char BP_LF         =       0x0a ;
+        char BP_CR              =       0x0d ;
+        char BP_NAK        =    '\u0015' ;
+        char BP_ESC     =       '\u001b' ;
+        char BP_RS         =    '\u001e' ;
+}

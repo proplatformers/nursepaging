@@ -1,0 +1,196 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package com.nursepaging.webservices;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Vector;
+
+import org.apache.xmlrpc.XmlRpcException;
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.apache.xmlrpc.client.XmlRpcCommonsTransportFactory;
+
+public class WSClient {
+	private static final String WS_URL = "http://192.168.0.252/pna-reports/services/xmlrpc";
+	private static final String WS_URLSSL = "https://ssl.webpack.de/pruefsumme.de/xmlrpc";
+
+	private static final String WS_ACTION_CONNECT = "system.connect";
+	private static final String WS_ACTION_LOGIN = "user.login";
+	private static final String WS_ACTION_LOGOUT = "user.logout";
+	private static final String WS_ACTION_GET = "node.get";
+	private static final String WS_ACTION_SAVE = "node.save";
+
+	private static final String WS_PARAM_SESSID = "sessid";
+	private static final String WS_PARAM_VALUE = "value";
+
+	private static final int WS_NID_TESTENTRY = 3;
+
+	@SuppressWarnings("unchecked")
+	public static void send(final String sUsername, final String sPassword) throws NoSuchAlgorithmException {
+		XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+
+		try {
+			config.setServerURL(new URL(WS_URL));
+			config.setEnabledForExtensions(false);
+
+			XmlRpcClient client = new XmlRpcClient();
+			client.setConfig(config);
+			client.setTransportFactory(new XmlRpcCommonsTransportFactory(client));
+
+			Vector vParams = new Vector();
+			Object oConnect = client.execute(WS_ACTION_CONNECT, vParams);
+			logging(WS_ACTION_CONNECT + "\t" + oConnect);
+			HashMap<String,Object> hm = (HashMap<String,Object>)oConnect;
+			String sessid = (String)hm.get(WS_PARAM_SESSID);
+			logging(sessid);
+
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("111111111111111111111111111111111111111111111111111111111") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+
+			vParams.clear();
+			vParams.add(sessid);
+			vParams.add(sUsername);
+			vParams.add(sPassword);
+			Object oLogin = client.execute(WS_ACTION_LOGIN, vParams);
+			logging(WS_ACTION_LOGIN + "\t" + oLogin);
+			hm = (HashMap<String,Object>)oLogin;
+			sessid = (String)hm.get(WS_PARAM_SESSID);
+//			HashMap<String,Object> hmUser = (HashMap<String,Object>) hm.get("user");
+//			String iUser = (String)hmUser.get("uid");
+
+			// Eintrag testweise abholen
+//			vParams.clear();
+//			vParams.add(sessid);
+//			vParams.add(WS_NID_TESTENTRY);
+//			vParams.add(new Vector());
+//			Object oGet = client.execute(WS_ACTION_GET, vParams);
+//			logging(WS_ACTION_GET + "\t" + oGet);
+
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("222222222222222222222222222222222222222222222222222222222") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+
+				HashMap<String,Object> hmSave = new HashMap<String,Object>();
+				hmSave.put("type", "pnamessage") ;
+				hmSave.put("title", "thetitle") ;
+                {
+                    HashMap<String,String> hm1 = new HashMap<String,String>() ;
+                    hm1.put("value", "6752") ;
+                    Vector v1 = new Vector() ;
+                    v1.add(hm1) ;
+                    hmSave.put("field_msgid", v1) ;
+                }
+                {
+                    HashMap<String,String> hm2 = new HashMap<String,String>() ;
+                    hm2.put("value", "235") ;
+                    Vector v2 = new Vector() ;
+                    v2.add(hm2) ;
+                    hmSave.put("field_msgreceiver",v2) ;
+                }
+                {
+                    HashMap<String,String> hm3 = new HashMap<String,String>() ;
+                    hm3.put("value", "6") ;
+                    Vector v3 = new Vector() ;
+                    v3.add(hm3) ;
+                    hmSave.put("field_msgalarmcode", v3) ;
+                }
+                {
+                    HashMap<String,String> hm4 = new HashMap<String,String>() ;
+                    hm4.put("value", "4") ;
+                    Vector v4 = new Vector() ;
+                    v4.add(hm4) ;
+                    hmSave.put("field_msgpri",v4) ;
+                }
+                {
+                    HashMap<String,String> hm5 = new HashMap<String,String>() ;
+                    hm5.put("value", "xmlrpc auth work") ;
+                    Vector v5 = new Vector() ;
+                    v5.add(hm5) ;
+                    hmSave.put("field_msgtext",v5) ;
+                }
+                {
+                    HashMap<String,String> hm6 = new HashMap<String,String>() ;
+                    hm6.put("value", "coding") ;
+                    Vector v6 = new Vector() ;
+                    v6.add(hm6) ;
+                    hmSave.put("field_msgsource",v6) ;
+                }
+                {
+                    HashMap<String,String> hm7 = new HashMap<String,String>() ;
+                    hm7.put("value", "2008-11-01 09:09:09") ;
+                    Vector v7 = new Vector() ;
+                    v7.add(hm7) ;
+                    hmSave.put("field_msgdate",v7) ;
+                }
+
+				try {
+					vParams.clear();
+					vParams.add(sessid);
+					vParams.add(hmSave);
+					Object oSave = client.execute(WS_ACTION_SAVE, vParams);
+					logging(WS_ACTION_SAVE + "\t" + oSave);
+				} catch (XmlRpcException e) {
+					System.err.println(e);
+					if("Failed to parse server's response: Content is not allowed in prolog.".equalsIgnoreCase(e.getMessage())) {
+						System.out.println("egal");
+					} else {
+						throw e;
+					}
+				}
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("333333333333333333333333333333333333333333333333333333333") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+            System.out.println("*********************************************************") ;
+
+
+            vParams.clear();
+			vParams.add(sessid);
+			Object oLogout = client.execute(WS_ACTION_LOGOUT, vParams);
+			logging(WS_ACTION_LOGOUT + "\t" + oLogout);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (XmlRpcException e) {
+			String sMessage = e.getMessage();
+			e.printStackTrace();
+		}
+	}
+
+	private static void logging(final String s) {
+		System.out.println(s);
+	}
+
+    public static void main(String[] args){
+        WSClient wsc = new WSClient() ;
+        try{
+            wsc.send("admin","admin") ;
+        }catch(NoSuchAlgorithmException e){
+            e.printStackTrace() ;
+        }
+    }
+}
